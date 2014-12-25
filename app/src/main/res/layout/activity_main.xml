@@ -4,14 +4,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="#ffcc1f0b"
-    tools:context=".MainActivity">
-
-    <view
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        class="org.opencv.android.JavaCameraView"
-        android:id="@+id/opencv_view"
-        android:layout_gravity="center"
-        opencv:show_fps="true"
-        opencv:camera_id="any" />
+    tools:context=".MainActivity"
+    android:id="@+id/frameLayout"
+    android:foregroundGravity="center">
 </FrameLayout>

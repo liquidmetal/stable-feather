@@ -3,14 +3,17 @@ package com.utkarshsinha.stablefeather;
 import com.utkarshsinha.stablefeather.util.SystemUiHider;
 
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -31,6 +34,8 @@ public class MainActivity extends Activity {
     private static String TAG = "SFOCV";
     private BaseLoaderCallback mOpencvLoadedCallback;
     private OpencvCameraView mOpencvCameraView;
+    private CameraOverlayWidget mCameraOverlay;
+    private FrameLayout mFrameLayout;
 
     static {
         System.loadLibrary("stable_feather");
@@ -39,6 +44,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        setContentView(R.layout.activity_main);
+
+        mFrameLayout = (FrameLayout)findViewById(R.id.frameLayout);
+        mOpencvCameraView = new OpencvCameraView(getApplicationContext(), 0);
+        mCameraOverlay = new CameraOverlayWidget(getApplicationContext(), null);
+
+        mFrameLayout.addView(mOpencvCameraView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
+        mFrameLayout.addView(mCameraOverlay, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
 
         mOpencvLoadedCallback = new BaseLoaderCallback(this) {
             @Override
@@ -55,12 +70,6 @@ public class MainActivity extends Activity {
 
             }
         };
-
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        mOpencvCameraView = new OpencvCameraView(this.getApplicationContext(), 0);
-        setContentView(mOpencvCameraView);
-
-
 
         mOpencvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener() {
             @Override
