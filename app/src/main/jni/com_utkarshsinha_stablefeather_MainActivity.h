@@ -59,11 +59,11 @@ extern "C" {
 #define com_utkarshsinha_stablefeather_MainActivity_DEFAULT_KEYS_SEARCH_GLOBAL 4L
 /*
  * Class:     com_utkarshsinha_stablefeather_MainActivity
- * Method:    JustSomething
- * Signature: (JLorg/opencv/core/Mat;)Z
+ * Method:    DrawCircle
+ * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_utkarshsinha_stablefeather_MainActivity_JustSomething
-  (JNIEnv *, jobject, jlong, jobject);
+JNIEXPORT jboolean JNICALL Java_com_utkarshsinha_stablefeather_MainActivity_DrawCircle
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

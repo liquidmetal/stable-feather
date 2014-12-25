@@ -17,12 +17,14 @@
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 
 using namespace std;
-using namespace cv;
 
 extern "C" {
-JNIEXPORT jboolean JNICALL Java_com_utkarshsinha_stablefeather_MainActivity_JustSomething
-  (JNIEnv *, jobject, jlong lCircleSize, jobject matFrame) {
+JNIEXPORT jboolean JNICALL Java_com_utkarshsinha_stablefeather_MainActivity_DrawCircle
+  (JNIEnv *, jobject, jlong lCircleSize, jlong matFrameAddr) {
       LOGI("Hey man, I'm in the native code!");
+      cv::Mat& matFrame = *(cv::Mat*)matFrameAddr;
+
+      cv::circle(matFrame, cv::Point(100, 100), lCircleSize, cv::Scalar(255,0,255));
       return JNI_TRUE;
   }
 }
