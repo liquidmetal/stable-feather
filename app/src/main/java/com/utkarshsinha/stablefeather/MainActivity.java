@@ -14,11 +14,12 @@ import android.view.View;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.video.Video;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -29,7 +30,7 @@ import org.opencv.imgproc.Imgproc;
 public class MainActivity extends Activity {
     private static String TAG = "SFOCV";
     private BaseLoaderCallback mOpencvLoadedCallback;
-    private JavaCameraView mOpencvCameraView;
+    private OpencvCameraView mOpencvCameraView;
 
     static {
         System.loadLibrary("stable_feather");
@@ -55,13 +56,16 @@ public class MainActivity extends Activity {
             }
         };
 
-        setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        mOpencvCameraView = new OpencvCameraView(this.getApplicationContext(), 0);
+        setContentView(mOpencvCameraView);
 
-        mOpencvCameraView = (JavaCameraView)findViewById(R.id.opencv_view);
+
+
         mOpencvCameraView.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener() {
             @Override
             public void onCameraViewStarted(int width, int height) {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
             }
 
             @Override
@@ -71,7 +75,7 @@ public class MainActivity extends Activity {
 
             @Override
             public Mat onCameraFrame(Mat inputFrame) {
-                JustSomething(2, inputFrame);
+                DrawCircle(50, inputFrame.getNativeObjAddr());
                 return inputFrame;
             }
         });
@@ -100,5 +104,5 @@ public class MainActivity extends Activity {
             mOpencvCameraView.disableView();
     }
 
-    public native boolean JustSomething(long t, Mat frame);
+    public native boolean DrawCircle(long radius, long frameAddr);
 }
