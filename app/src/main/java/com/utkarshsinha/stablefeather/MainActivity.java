@@ -10,9 +10,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.widget.FrameLayout;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -34,8 +36,13 @@ public class MainActivity extends Activity {
     private static String TAG = "SFOCV";
     private BaseLoaderCallback mOpencvLoadedCallback;
     private OpencvCameraView mOpencvCameraView;
+
     private CameraOverlayWidget mCameraOverlay;
+    private GestureDetector.SimpleOnGestureListener mOverlayGestureDetector = null;
+
     private FrameLayout mFrameLayout;
+
+    protected boolean isRecording = false;
 
     static {
         System.loadLibrary("stable_feather");
@@ -45,12 +52,33 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
         mFrameLayout = (FrameLayout)findViewById(R.id.frameLayout);
         mOpencvCameraView = new OpencvCameraView(getApplicationContext(), 0);
         mCameraOverlay = new CameraOverlayWidget(getApplicationContext(), null);
+
+        mOverlayGestureDetector = new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent motionEvent) {
+                if(!isRecording) {
+                    mCameraOverlay.setRecording();
+                    String output = getOutputMediaFile().toString();
+                    Log.d(TAG, "Output file: " + output);
+                    mOpencvCameraView.recordVideo(output);
+
+                    isRecording = true;
+                } else {
+                    mOpencvCameraView.stopRecord();
+                    mCameraOverlay.unsetRecording();
+
+                    isRecording = false;
+                }
+                return false;
+            }
+        };
+        mCameraOverlay.setCustomTouchMethods(mOverlayGestureDetector);
 
         mFrameLayout.addView(mOpencvCameraView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
         mFrameLayout.addView(mCameraOverlay, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
