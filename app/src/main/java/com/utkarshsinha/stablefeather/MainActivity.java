@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -25,6 +26,10 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -139,6 +144,27 @@ public class MainActivity extends Activity {
         super.onPause();
         if(mOpencvCameraView!=null)
             mOpencvCameraView.disableView();
+    }
+
+    private File getOutputMediaFile() {
+        if(!Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
+            return null;
+        }
+
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Recorder");
+
+        if(!mediaStorageDir.exists()) {
+            if(!mediaStorageDir.mkdirs()) {
+                Log.d("Recorder", "Failed to create directory");
+                return null;
+            }
+        }
+
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File mediaFile;
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator + "VID_" + timeStamp + ".mp4");
+
+        return mediaFile;
     }
 
     public native boolean DrawCircle(long radius, long frameAddr);
