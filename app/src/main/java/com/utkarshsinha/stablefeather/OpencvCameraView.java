@@ -1,7 +1,10 @@
 package com.utkarshsinha.stablefeather;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -16,6 +19,7 @@ import android.view.ViewGroup;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.NativeCameraView;
+import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -29,6 +33,7 @@ import java.util.List;
  */
 public class OpencvCameraView extends CameraBridgeViewBase implements Camera.PreviewCallback {
     private static final int MAGIC_TEXTURE_ID = 10;
+    protected static final String TAG = "SFOCV::CameraView";
 
     private SurfaceTexture mSurfaceTexture;
     private byte mBuffer[];
@@ -39,13 +44,11 @@ public class OpencvCameraView extends CameraBridgeViewBase implements Camera.Pre
 
     protected Camera mCamera;
     protected JavaCameraFrame[] mCameraFrame;
-    protected static final String TAG = "SFOCV::CameraView";
     protected MediaRecorder mMediaRecorder;
 
     public OpencvCameraView(Context ctx, int id) {
         super(ctx, id);
     }
-
     public OpencvCameraView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
     }
@@ -265,8 +268,6 @@ public class OpencvCameraView extends CameraBridgeViewBase implements Camera.Pre
                         params.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
                     }
 
-                    mCamera.setDisplayOrientation(90);
-
                     mCamera.setParameters(params);
                     params = mCamera.getParameters();
 
@@ -398,7 +399,6 @@ public class OpencvCameraView extends CameraBridgeViewBase implements Camera.Pre
      * @param cam The camera which returned the data
      */
     public void onPreviewFrame(byte[] frame, Camera cam) {
-        Log.d(TAG, "Preview Frame received. Frame size: " + frame.length);
         synchronized (this) {
             mFrameChain[1 - mChainIdx].put(0, 0, frame);
             this.notify();
@@ -476,6 +476,70 @@ public class OpencvCameraView extends CameraBridgeViewBase implements Camera.Pre
         return optimalSize;
     }
 
+    public void stopPreview() {
+        if(mCamera!=null) {
+            mCamera.stopPreview();
+
+            try {
+                mCamera.setPreviewDisplay(null);
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Starts preview after a stopPreview call.
+     * TODO Identify why this never works
+     */
+    public void startPreview() {
+        if(mCamera!=null) {
+            Log.d(TAG, "Trying to restart preview");
+
+            try {
+                mCamera.setPreviewDisplay(getHolder());
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+            }
+
+            mCamera.startPreview();
+        }
+    }
+
+    /**
+     * Lets you set a specific preview image
+     * @param frame The image to set
+     */
+    public void setPreviewFrame(Mat frame) {
+        if(frame == null)
+            // Nothing to do here
+            return;
+
+        Bitmap mCacheBitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(frame, mCacheBitmap);
+
+        Canvas canvas = getHolder().lockCanvas();
+        if (canvas != null) {
+            Log.d(TAG, "Setting preview to a custom frame!");
+            canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+
+            canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
+                    new Rect((canvas.getWidth() - mCacheBitmap.getWidth()) / 2,
+                            (canvas.getHeight() - mCacheBitmap.getHeight()) / 2,
+                            (canvas.getWidth() - mCacheBitmap.getWidth()) / 2 + mCacheBitmap.getWidth(),
+                            (canvas.getHeight() - mCacheBitmap.getHeight()) / 2 + mCacheBitmap.getHeight()), null);
+
+            getHolder().unlockCanvasAndPost(canvas);
+        }
+    }
+
+    public float getFocalLength() {
+        Camera.Parameters params = mCamera.getParameters();
+        return params.getFocalLength();
+    }
+
     private class JavaCameraFrame implements CvCameraViewFrame {
         public Mat gray() {
             return mYuvFrameData.submat(0, mHeight, 0, mWidth);
@@ -533,7 +597,6 @@ public class OpencvCameraView extends CameraBridgeViewBase implements Camera.Pre
     }
 
     protected void receivePreviewFrame(CvCameraViewFrame frame) {
-        Log.d(TAG, "Received frame!");
     }
 
     public static class JavaCameraSizeAccessor implements ListItemAccessor {

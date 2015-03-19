@@ -65,6 +65,14 @@ extern "C" {
 JNIEXPORT jboolean JNICALL Java_com_utkarshsinha_stablefeather_MainActivity_DrawCircle
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     com_utkarshsinha_stablefeather_MainActivity
+ * Method:    ReadVideo
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_utkarshsinha_stablefeather_MainActivity_ReadVideo
+  (JNIEnv *, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif
